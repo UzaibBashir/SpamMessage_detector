@@ -9,6 +9,41 @@ This project demonstrates a complete ML pipeline from data analysis to productio
 - **Accuracy**: Achieves high precision/recall using TF-IDF vectorization
 - **Technology**: Scikit-learn, Flask, Python, NLTK
 
+## Architecture
+
+The project is organized as an offline training workflow and two inference
+interfaces that share the same serialized machine learning pipeline.
+
+```mermaid
+flowchart LR
+    D[SMSSpamCollection.txt] --> T[Notebook training workflow]
+    T --> P[Text preprocessing]
+    P --> V[CountVectorizer + TfidfTransformer]
+    V --> C[MultinomialNB classifier]
+    C --> S[spam_pipeline.pkl]
+
+    S --> W[app.py Flask server]
+    S --> L[model.py CLI predictor]
+    W --> UI[index.html]
+    UI -->|POST /predict| W
+    W --> R[SPAM or HAM result]
+    L --> R2[Printed prediction]
+```
+
+### Request flow
+
+1. A user enters an SMS message in `app/templates/index.html`.
+2. The browser sends the message to the Flask `POST /predict` endpoint in
+   `app.py`.
+3. The loaded pipeline tokenizes the message, removes punctuation and English
+   stopwords, applies TF-IDF features, and predicts `spam` or `ham`.
+4. Flask renders the prediction back in the same template.
+
+The command-line path in `model.py` bypasses Flask and sends sample messages
+directly to the same persisted pipeline. The pipeline is trained offline in
+the notebook and loaded at runtime with Joblib, so prediction does not require
+retraining the model.
+
 ## Project Structure
 
 ```
